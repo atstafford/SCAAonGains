@@ -749,6 +749,7 @@ cloFreqPlot <- function(clonalityData, dataInfo, annotation, title=NULL, ylab="F
 }
 
 # Function to plot a split violin plot
+library(tidyverse)
 GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
                            draw_group = function(self, data, ..., draw_quantiles = NULL) {
                              data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
@@ -824,4 +825,12 @@ gene_anno <- function (top.bins, results) {
   #top.genes <- merge(top.genes, results, by = colnames(wd)[2]) #add in data from gene annotation data
   #colnames(top.genes)[4] <- "chr"
   return(top.genes)
+}
+
+lmp <- function (modelobject) {
+  if (class(modelobject) != "lm") stop("Not an object of class 'lm' ")
+  f <- summary(modelobject)$fstatistic
+  p <- pf(f[1],f[2],f[3],lower.tail=F)
+  attributes(p) <- NULL
+  return(p)
 }

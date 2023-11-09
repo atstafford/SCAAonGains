@@ -87,7 +87,7 @@ for ( i in 1:length(atac_sub.list) ) {
 # COPY NUMBER CORRECTION -----------------------------------------------------------------------------------------------------------------------------------------------
 # correct for CN: S = Sn * [2(1 - purity) + CNA*purity]/[2(1 - purity) + ploidy*purity]
 cn.correction <- list()
-for(s in 1:length(atac_sub.list)) { # for a given sample
+for(s in 69:length(atac_sub.list)) { # for a given sample
   corrected <- list()
   print(s)
   for (b in 1:nrow(atac_sub.list[[s]])) { # for a given bin
@@ -100,8 +100,11 @@ for(s in 1:length(atac_sub.list)) { # for a given sample
     
     # pull cn for that sample/bin
     wgsbin <- as.numeric(binmatch_dwgs[[s]]$matched_wgs_bin[b])
-    atacsample <- substr(colnames(atac_sub.list[[s]]), 1, nchar(colnames(atac_sub.list[[s]]))-4)
-    wgscol <- which(atacsample == substr(names(dwgs_sub), 1, 6))
+    #atacsample <- substr(colnames(atac_sub.list[[s]]), 1, nchar(colnames(atac_sub.list[[s]]))-4)
+    atacsample <- str_before_first(colnames(atac_sub.list[[s]]), "_")
+    #atacsample <- substr(atacsample, 1, nchar(atacsample)-1)
+    #wgscol <- which(atacsample == substr(names(dwgs_sub), 1, 7))
+    wgscol <- which(atacsample == str_before_first(names(dwgs_sub), "_"))
     
     if (length(wgscol)==1) {
       CNA <- dwgs_sub[[wgscol]]$CNt[wgsbin]
@@ -145,5 +148,5 @@ saveRDS(binmatch_dwgs, "~/Documents/SCAA/Data/binmatch_dwgs.rds")
 saveRDS(cn.correction, "~/Documents/SCAA/Data/cn.correction.rds")
 saveRDS(atac_cn.deepWGSnorm, "~/Documents/SCAA/Data/atac_cn.deepWGSnorm.rds")
 
-
+dim(atac_cn.deepWGSnorm)
 

@@ -43,6 +43,7 @@ dds.dWGS.cohort <- DESeq2::DESeqDataSetFromMatrix(countData = counts,
                                              design = ~ purity + patient.subtissue)
 
 # run
+library(DESeq2)
 deseq.dWGS.cohort <- DESeq(dds.dWGS.cohort)
 deseqVst.dWGS.cohort <- vst(deseq.dWGS.cohort, blind = F)
 

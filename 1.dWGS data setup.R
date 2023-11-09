@@ -6,14 +6,23 @@ myFiles <- list.files("~/Documents/SCAA/Data/EPICC/deep/Segments", full.names=T)
 dwgs <- lapply(myFiles, read.delim)
 
 # extract sample names and correct format
+library(strex)
 sampleNames <- list.files("~/Documents/SCAA/Data/EPICC/deep/Segments", full.names=F)
-sampleNames <- substr(sampleNames, 7, 16)
+sampleNames <- str_after_first(sampleNames, "_")
+sampleNames <- str_before_nth(sampleNames, "_", 3)
 sampleNames <- sub("_", ".", sampleNames)
 names(dwgs) <- sampleNames
 
+#QC
+qc <- readRDS("~/Documents/SCAA/Data/EPICC/deep/EPICC_deep_samlist.rds")
+qc$y <- ifelse(sub("_", ".", qc$SamID) %in% names(dwgs), TRUE, FALSE)
+keep <- which(names(dwgs) %in% sub("_", ".", qc$SamID))
+dwgs <- dwgs[keep]
+
 # keep only gland data
-type <- substr(sampleNames,9,9)
-dwgs <- dwgs[type == "G"]
+#type <- substr(sampleNames,9,9)
+type <- substr(str_after_last(names(dwgs), "_"),1 ,1)
+dwgs <- dwgs[which(type == "G")]
 
 # subset based on adenoma/carcinoma: adenoma=F-G (and C/D in C516), normal=E, carcinoma=A-D
 normal <- grep("\\.E", names(dwgs))
@@ -68,6 +77,7 @@ for (j in 1:length(dwgs)) {
 # remove duplicates
 index <- !duplicated(names(dwgs))
 dwgs <- dwgs[index]
+
 
 # PLOIDY RECENTRE =====
 
@@ -151,6 +161,7 @@ for (i in 1:length(unique(patient))) {
   dwgs.ploidyRecentre.perpatient[[i]] <- powerjoin::power_full_join(list, by = c("chromosome","start","stop"))
 }
 names(dwgs.ploidyRecentre.perpatient) <- unique(patient)
+
 
 
 # SAVE -----------------------------------------------------------------------------------------------------------------------------------------------

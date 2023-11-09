@@ -172,10 +172,98 @@ for (j in 1:length(segments)) {
   segments[[j]]$pcArm <- unlist(pcArm)
   segments[[j]]$arm <- unlist(arm)
 }
+names(segments) <- names(dwgs.perpatient)
+
+# SEGMENTS ON PLOIDY RECENTERED =====
+
+
+library(data.table)
+
+segments_ploidyrecenterd <- list()
+for (i in 1:length(dwgs.ploidyRecentre.perpatient)) {
+  wd <- dwgs.ploidyRecentre.perpatient[[i]]
+  
+  # list subclonal X per patient
+  x <- tidyr::gather(wd, key = "sample", value = "cn", 4:ncol(wd))
+  
+  # find length
+  x$size <- x$stop - x$start
+  
+  # some X may occur in >1 sample (althouhg still subclonal)
+  freq <- setDT(x[,c(1:3,5)])[,list(countSame=.N),names(x[,c(1:3,5)])]
+  
+  # for a given subclonal gain, whats the average copy number and SD
+  aveCN <- aggregate(x$cn, by=list(chromosome=x$chromosome, start=x$start, stop=x$stop), FUN=mean, na.rm = TRUE)
+  
+  x <- merge(x,freq)
+  x <- merge(x,aveCN)
+  colnames(x)[ncol(x)] <- "aveCN"
+  
+  colnames(x)[1] <- "chr"
+  colnames(x)[2] <- "cnaStart"
+  colnames(x)[3] <- "cnaStop"
+  
+  x$nsample <- ncol(dwgs.ploidyRecentre.perpatient[[i]])-3
+  x$patient <- names(dwgs.ploidyRecentre.perpatient)[i]
+  x$segID <- paste(x$chr, ":", x$cnaStart, "-", x$cnaStop, sep = "")
+  
+  x$cna <- ifelse(x$cn>2, "gain", ifelse(x$cn<2, "loss", "diploid"))
+  
+  aveCNperCNA <- aggregate(x$cn, by=list(chr=x$chr, cnaStart=x$cnaStart, cnaStop=x$cnaStop, cna=x$cna), FUN=mean, na.rm = TRUE)
+  x <- merge(x,aveCNperCNA)
+  colnames(x)[ncol(x)] <- "aveCNperCNA"
+  
+  # tag the true diploids
+  list <- list()
+  for (j in 1:nrow(x)) {
+    sample <- x$sample[j]
+    wd2 <- trueDiploids[trueDiploids$sample==sample,]
+    list[[j]] <- ifelse(x$cna[j] == "diploid" & x$segID[j] %in% wd2$segID, "diploid", 
+                        ifelse(x$cna[j] == "diploid" & x$segID[j] %!in% wd2$segID, "LOH", 
+                               ifelse(x$cna[j] == "gain", "gain", ifelse(x$cna[j] == "loss","loss", NA))))
+  }
+  
+  x$cna <- unlist(list)
+  
+  freq <- setDT(x[,c(1:4)])[,list(countSameCNA=.N),names(x[,c(1:4)])]
+  x <- merge(x,freq)
+  x <- x[,c(11,6,10,1,2,3,12,7,4,5,8,9,14,13)]
+  x$clonalityCNA <- x$countSameCNA / x$nsample 
+  
+  # find number of peaks/scaa per segment (as long as over half peak in segment)
+  n.peaks <- list()
+  n.SCAA <- list()
+  
+  for (j in 1:nrow(x)) {
+    print(paste(i,"/",length(dwgs.ploidyRecentre.perpatient),"-",j,"/",nrow(x)))
+    chr <- x$chr[j]
+    start <- x$cnaStart[j]
+    stop <- x$cnaStop[j]
+    
+    wd <- scaa[which(scaa.bins$chr==chr & (scaa.bins$peakStart>=(start-250)) & (scaa.bins$peakStop<=(stop+250)) ), substr(colnames(scaa),1,4) == unique(x$patient)]
+    n.peaks[[j]] <- length(wd)
+    
+    # calculate scaa per segment
+    n.SCAA[[j]] <- sum(wd==1)
+  }
+  
+  x$n.peaks <- unlist(n.peaks)
+  x$n.SCAA <- unlist(n.SCAA)
+  
+  x$prop.SCAA <- x$n.SCAA / x$n.peaks
+  
+  segments_ploidyrecenterd[[i]] <- x
+}
+
+names(segments_ploidyrecenterd) <- names(dwgs.ploidyRecentre.perpatient)
+x <- do.call(rbind, segments_ploidyrecenterd)
+sum(x$cna=="diploid", na.rm = T)
+
 
 # SAVE -----------
 saveRDS(trueDiploids, "~/Documents/SCAA/Data/trueDiploids.rds")
 saveRDS(segments, "~/Documents/SCAA/Data/segments.rds")
+saveRDS(segments_ploidyrecenterd, "~/Documents/SCAA/Data/segments_ploidyrecenterd.rds")
 saveRDS(scaa, "~/Documents/SCAA/Data/scaa.rds")
 
 

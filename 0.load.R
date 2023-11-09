@@ -18,10 +18,31 @@ dds.dWGS.cohort <- readRDS("~/Documents/SCAA/Data/dds.dWGS.cohort.rds")
 deseq.dWGS.cohort <- readRDS("~/Documents/SCAA/Data/deseq.dWGS.cohort.rds")
 deseqVst.dWGS.cohort <- readRDS("~/Documents/SCAA/Data/deseqVst.dWGS.cohort.rds")
 
+metaData.perpatient <- readRDS("~/Documents/SCAA/Data/metaData.perpatient.rds") #old
+dds_rlog.perpatient <- readRDS("~/Documents/SCAA/Data/dds_rlog.perpatient.rds") #old
+
 # Output from section 4 (segment data) ==============
 trueDiploids <- readRDS("~/Documents/SCAA/Data/trueDiploids.rds")
 segments <- readRDS("~/Documents/SCAA/Data/segments.rds")
+segments_ploidyrecenterd <- readRDS("~/Documents/SCAA/Data/segments_ploidyrecenterd.rds")
+scaa <- readRDS("~/Documents/SCAA/Data/scaa.rds")
+
+# Output from section 5 (peak-level data) ==============
 scaa.long <- readRDS("~/Documents/SCAA/Data/scaa.long.rds")
+
+# Output from section 6 (patient-level data) ==============
+scaaPP <- readRDS("~/Documents/SCAA/Data/scaaPP.rds")
+
+# Output from section 7 (breakpoint data) ==============
+breakpoints_dWGS <- readRDS("~/Documents/SCAA/Data/EPICC/SCAA/breakpoints_dWGS.rds")
+randomPoints <- readRDS("~/Documents/SCAA/Data/EPICC/SCAA/randomPoints.rds")
+
+# Output from section 8 (SCAAs at breakpoint data) ==============
+scaaPerBreakpoint <- readRDS("~/Documents/SCAA/Data/EPICC/SCAA/scaaPerBreakpoint.rds")
+scaaPerRandomPoints <- readRDS("~/Documents/SCAA/Data/EPICC/SCAA/scaaPerRandomPoints.rds")
+breakpointPerScaa <- readRDS("~/Documents/SCAA/Data/EPICC/SCAA/breakpointPerScaa.rds")
+
+
 
 
 
